@@ -6,15 +6,6 @@ import (
 	"net/http"
 )
 
-/*
-type Command int
-
-const Command = {
-	Register = iota
-	SetStone
-}
-*/
-
 func main() {
 	var (
 		addr = flag.String("addr", ":8080", "http service address")
@@ -23,14 +14,6 @@ func main() {
 	flag.Parse()
 	app := NewApp()
 	app.HandlerFunc("set_stone", CmdSetStone)
-	/*
-		app.HandlerFunc("register", func() {
-			fmt.Println("register")
-		})
-		app.HandlerFunc("setstone", func() {
-			fmt.Println("set stone")
-		})
-	*/
 	hub := newHub(app)
 	go hub.run()
 

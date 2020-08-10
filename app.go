@@ -12,11 +12,6 @@ type Request struct {
 	Body json.RawMessage `json:"body"`
 }
 
-type RequestRPC struct {
-	Color int           `json:"color"`
-	Cell  *reversi.Cell `json:"cell"`
-}
-
 type BroadcastRPC struct {
 	Status int               `json:"status"`
 	Color  int               `json:"color"`
