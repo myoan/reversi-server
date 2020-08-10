@@ -22,6 +22,7 @@ func main() {
 
 	flag.Parse()
 	app := NewApp()
+	app.HandlerFunc("set_stone", CmdSetStone)
 	/*
 		app.HandlerFunc("register", func() {
 			fmt.Println("register")

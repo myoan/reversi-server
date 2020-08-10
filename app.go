@@ -8,8 +8,8 @@ import (
 )
 
 type Request struct {
-	Cmd  string `json:"cmd"`
-	Body string `json:"body"`
+	Cmd  string          `json:"cmd"`
+	Body json.RawMessage `json:"body"`
 }
 
 type RequestRPC struct {
@@ -33,7 +33,7 @@ type App struct {
 	game     *reversi.Game
 	black    *Client
 	white    *Client
-	handlers map[string]func([]byte)
+	handlers map[string]func(*reversi.Game, json.RawMessage)
 }
 
 func NewApp() *App {
@@ -41,7 +41,7 @@ func NewApp() *App {
 	game.GameState = reversi.BlackTurn
 	return &App{
 		game:     game,
-		handlers: make(map[string]func([]byte)),
+		handlers: make(map[string]func(*reversi.Game, json.RawMessage)),
 	}
 }
 
@@ -65,7 +65,11 @@ func (app *App) OnUnregister(client *Client) {
 }
 
 func (app *App) OnFromClient(msg []byte) {
-	app.Read(msg)
+	var req *Request
+	fmt.Printf("request: %s\n", string(msg))
+	json.Unmarshal(msg, &req)
+	app.Call(req.Cmd, req.Body)
+
 	message := app.Broadcast()
 	app.black.send <- message
 	app.white.send <- message
@@ -83,48 +87,12 @@ func (app *App) Broadcast() []byte {
 	return ret
 }
 
-func (app *App) Read(msg []byte) {
-	var req *RequestRPC
-	fmt.Printf("request: %s\n", string(msg))
-	json.Unmarshal(msg, &req)
-
-	switch app.game.GameState {
-	case reversi.Prepare:
-		app.game.GameState = reversi.BlackTurn
-	case reversi.BlackTurn:
-		fmt.Println("Black turn")
-		if req.Color != int(reversi.BlackTurn) {
-			break
-		}
-		pos := &reversi.Position{
-			X: req.Cell.X,
-			Y: req.Cell.Y,
-		}
-		app.game.SetStone(1, pos)
-	case reversi.WhiteTurn:
-		fmt.Println("White turn")
-		if req.Color != int(reversi.WhiteTurn) {
-			break
-		}
-		pos := &reversi.Position{
-			X: req.Cell.X,
-			Y: req.Cell.Y,
-		}
-		app.game.SetStone(2, pos)
-	case reversi.Finish:
-		fmt.Println("Finish")
-		fmt.Printf("%d win!\n", app.game.Winner())
-		return
-	}
-	app.game.Show()
+func (app *App) HandlerFunc(cmd string, f func(*reversi.Game, json.RawMessage)) {
+	fmt.Printf("regist handler: %s\n", cmd)
+	app.handlers[cmd] = f
 }
 
-/*
-func (app *App) HandlerFunc(key string, f func()) {
-	app.handlers[key] = f
+func (app *App) Call(cmd string, input json.RawMessage) {
+	fmt.Printf("call handler: %s\n", cmd)
+	app.handlers[cmd](app.game, input)
 }
-
-func (app *App) Call(key string, input []byte) {
-	app.handlers[key](input)
-}
-*/
