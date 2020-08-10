@@ -23,8 +23,16 @@ type BroadcastRPC struct {
 	Board  [][]*reversi.Cell `json:"board"`
 }
 
+type GameEvent interface {
+	OnRegister(client *Client)
+	OnUnregister(client *Client)
+	OnFromClient(msg []byte)
+}
+
 type App struct {
 	game     *reversi.Game
+	black    *Client
+	white    *Client
 	handlers map[string]func([]byte)
 }
 
@@ -35,6 +43,32 @@ func NewApp() *App {
 		game:     game,
 		handlers: make(map[string]func([]byte)),
 	}
+}
+
+func (app *App) OnRegister(client *Client) {
+	if app.black == nil {
+		fmt.Println("register black")
+		app.black = client
+		message := app.Broadcast()
+		app.black.send <- message
+	} else if app.white == nil {
+		fmt.Println("register white")
+		app.white = client
+		message := app.Broadcast()
+		app.white.send <- message
+	} else {
+		fmt.Println("no register")
+	}
+}
+
+func (app *App) OnUnregister(client *Client) {
+}
+
+func (app *App) OnFromClient(msg []byte) {
+	app.Read(msg)
+	message := app.Broadcast()
+	app.black.send <- message
+	app.white.send <- message
 }
 
 func (app *App) Broadcast() []byte {
