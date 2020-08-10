@@ -1,0 +1,4 @@
+github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
+github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
+github.com/myoan/go-reversi v0.0.0-20200808154647-716e35c02053 h1:20RU0FShYvXobKuhTRBZBtAe2/3uz5Y5q2RjlnP9MY8=
+github.com/myoan/go-reversi v0.0.0-20200808154647-716e35c02053/go.mod h1:gos5/XjEVMCbm1USHrCc2XLbHVgx+LLYNAcRZUem9yQ=
