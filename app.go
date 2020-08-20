@@ -44,12 +44,12 @@ func (app *App) OnRegister(client *Client) {
 	if app.black == nil {
 		fmt.Println("register black")
 		app.black = client
-		message := app.Broadcast()
+		message := app.Broadcast(1)
 		app.black.send <- message
 	} else if app.white == nil {
 		fmt.Println("register white")
 		app.white = client
-		message := app.Broadcast()
+		message := app.Broadcast(2)
 		app.white.send <- message
 	} else {
 		fmt.Println("no register")
@@ -65,15 +65,15 @@ func (app *App) OnFromClient(msg []byte) {
 	json.Unmarshal(msg, &req)
 	app.Call(req.Cmd, req.Body)
 
-	message := app.Broadcast()
+	message := app.Broadcast(int(app.game.GameState))
 	app.black.send <- message
 	app.white.send <- message
 }
 
-func (app *App) Broadcast() []byte {
+func (app *App) Broadcast(color int) []byte {
 	res := *&BroadcastRPC{
 		Status: 0,
-		Color:  int(app.game.GameState),
+		Color:  color,
 		Board:  app.game.GetBoard(),
 	}
 	ret, _ := json.Marshal(res)
