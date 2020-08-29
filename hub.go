@@ -5,7 +5,7 @@ Hub manage clients and message
 */
 type Hub struct {
 	event      GameEvent
-	fromClient chan []byte
+	fromClient chan *Data
 	register   chan *Client
 	unregister chan *Client
 }
@@ -13,7 +13,7 @@ type Hub struct {
 func newHub(event GameEvent) *Hub {
 	return &Hub{
 		event:      event,
-		fromClient: make(chan []byte),
+		fromClient: make(chan *Data),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 	}
@@ -28,7 +28,7 @@ func (h *Hub) run() {
 			h.event.OnUnregister(client)
 			close(client.send)
 		case data := <-h.fromClient:
-			h.event.OnFromClient(data)
+			h.event.OnFromClient(data.client, data.data)
 		}
 	}
 }

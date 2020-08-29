@@ -38,6 +38,11 @@ type Client struct {
 	send chan []byte
 }
 
+type Data struct {
+	client *Client
+	data   []byte
+}
+
 func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
@@ -55,7 +60,7 @@ func (c *Client) readPump() {
 			break
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.hub.fromClient <- message
+		c.hub.fromClient <- &Data{client: c, data: message}
 		// c.hub.broadcast <- message
 	}
 }
@@ -80,16 +85,7 @@ func (c *Client) writePump() {
 				return
 			}
 			w.Write(message)
-
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				w.Write(newline)
-				w.Write(<-c.send)
-			}
-
-			if err := w.Close(); err != nil {
-				return
-			}
+			c.conn.WriteMessage(websocket.PingMessage, nil)
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
